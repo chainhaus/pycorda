@@ -29,4 +29,4 @@ Accepted JDBC urls are in the format jdbc:h2:tcp://hostname:portnumber/path_to_d
 
 ## Requirements
 
-Currently only support 64-bit versions of Python 3 and JVM
+Currently supports 64-bit versions of Python 3 and JVMs only
