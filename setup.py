@@ -7,7 +7,8 @@ setup(
 	packages=['pycorda'],
 	install_requires=[
 		'jaydebeapi',
-		'pandas'
+		'pandas',
+		'requests'
 	],
 	include_package_data=True,
 )

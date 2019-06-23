@@ -1,6 +1,30 @@
 import os
 import pandas
 import jaydebeapi
+import sys
+import requests
+from jpype import JavaException
+from xml.etree import ElementTree
+
+class H2Tools(object):
+	def get_latest_version(self):
+		"""Returns the latest version string for the h2 database"""
+		r = requests.get('http://central.maven.org/maven2/com/h2database/h2/maven-metadata.xml')
+		tree = ElementTree.fromstring(r.content)
+		return tree.find('versioning').find('latest').text
+
+	def get_h2jar_url(self,version):
+		url = "http://central.maven.org/maven2/com/h2database/h2/"
+		url += version + "/h2-" + version + ".jar"
+		return url
+
+	def download_h2jar(self,filepath='./h2.jar', version=None):
+		"""Downloads h2 jar and copies it to a file in filepath"""
+		if version is None:
+			version = self.get_latest_version()
+		r = requests.get(self.get_h2jar_url(version))
+		with open(filepath, 'wb') as jarfile:
+			jarfile.write(r.content)
 
 class Node(object):
 	"""Node object for connecting to H2 database and getting table dataframes
