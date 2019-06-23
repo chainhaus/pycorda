@@ -28,7 +28,8 @@ Accepted JDBC urls are in the format jdbc:h2:tcp://hostname:portnumber/path_to_d
 ## Managing H2 Jars
 
 An h2.jar file stored locally in the project folder is required. H2Tools allows you to pull
-a jar programmatically.
+a jar programmatically. You'll need to do this once, so either manually or programmatically is fine
+as long as the h2.jar file is there.
 
 ```
 import pycorda as pyc
