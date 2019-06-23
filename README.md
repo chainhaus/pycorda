@@ -1,6 +1,7 @@
 # PyCorda
 
-Access node and vault data for analytics. Currently only works with H2 database. I'll be adding other DBs shortly and possibly support for queryable states.
+Access node and vault data for analytics using pandas DataFrames. Currently only works with H2 database. 
+We'll be adding other DBs shortly and possibly support for queryable states.
 
 ## PyCorda.com
 Access docs on PyCorda.com (coming soon)
