@@ -31,7 +31,7 @@ An h2.jar file stored locally in the project folder is required. H2Tools allows 
 a jar programmatically.
 
 ```
-from pycorda import Node, H2Tools
+import pycorda as pyc
 h2 = pyc.H2Tools()
 ver = h2.get_latest_version()
 print(ver)
