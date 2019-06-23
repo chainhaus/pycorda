@@ -25,7 +25,7 @@ node = Node(url, username, password, path_to_jar)
 ```
 Accepted JDBC urls are in the format jdbc:h2:tcp://hostname:portnumber/path_to_database.
 
-# Managing H2 Jars
+## Managing H2 Jars
 
 An h2.jar file stored locally in the project folder is required. H2Tools allows you to pull
 a jar programmatically.
@@ -37,8 +37,6 @@ ver = h2.get_latest_version()
 print(ver)
 h2.download_h2jar() # downloads latest h2 jar and stores in local folder as h2.jar
 ```
-
-
 
 ## Requirements
 
