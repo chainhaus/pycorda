@@ -1,17 +1,30 @@
 # PyCorda
 
+Access node and vault data for analytics. Currently only works with H2 database. I'll be adding other DBs shortly and possibly support for queryable states.
+
 ## PyCorda.com
 Access docs on PyCorda.com (coming soon)
 
-## Usage
-Access node and vault data for analytics. Currently only works with H2 database. I'll be adding other DBs shortly and possibly support for queryable states.
+## Example
+
+```
+import pycorda as pyc
+
+url = 'jdbc:h2:tcp://localhost:52504/node'
+username = 'sa'
+password = ''
+node = pyc.Node(url, username, password)
+print(node.get_node_infos())
+node.close()
+```
+
+## Installation
 
 To get started using the PyCorda library, install it with
 
 ```
 pip install pycorda
 ```
-
 
 If there is a H2 server running with tcp connections allowed,
 then you can connect to a database located at the JDBC url with:
@@ -21,7 +34,7 @@ from pycorda import Node
 node = Node(url, username, password)
 ```
 
-If your H2 jar file is elsewhere in your filesystem, try this:
+An h2.jar file is required. If your H2 jar file is elsewhere in your filesystem, try this:
 
 ```
 from pycorda import Node
@@ -41,19 +54,6 @@ h2 = pyc.H2Tools()
 ver = h2.get_latest_version()
 print(ver)
 h2.download_h2jar() # downloads latest h2 jar and stores in local folder as h2.jar
-```
-
-## Example Usage
-
-```
-import pycorda as pyc
-
-url = 'jdbc:h2:tcp://localhost:52504/node'
-username = 'sa'
-password = ''
-node = pyc.Node(url, username, password)
-print(node.get_node_infos())
-node.close()
 ```
 
 ## Requirements
