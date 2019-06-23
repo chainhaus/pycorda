@@ -43,6 +43,19 @@ print(ver)
 h2.download_h2jar() # downloads latest h2 jar and stores in local folder as h2.jar
 ```
 
+## Example Usage
+
+```
+import pycorda as pyc
+
+url = 'jdbc:h2:tcp://localhost:52504/node'
+username = 'sa'
+password = ''
+node = pyc.Node(url, username, password)
+print(node.get_node_infos())
+node.close()
+```
+
 ## Requirements
 
 1. Currently supports 64-bit versions of Python 3 and JVMs only
