@@ -1,13 +1,31 @@
 # PyCorda
 
-Access node and vault data for analytics.
+Access node and vault data for analytics using pandas DataFrames. Currently only works with H2 database. 
+We'll be adding other DBs shortly and possibly support for queryable states.
+
+## PyCorda.com
+Access docs on PyCorda.com (coming soon)
+
+## Example
+
+```
+import pycorda as pyc
+
+url = 'jdbc:h2:tcp://localhost:52504/node'
+username = 'sa'
+password = ''
+node = pyc.Node(url, username, password)
+print(node.get_node_infos())
+node.close()
+```
+
+## Installation
 
 To get started using the PyCorda library, install it with
 
 ```
 pip install pycorda
 ```
-
 
 If there is a H2 server running with tcp connections allowed,
 then you can connect to a database located at the JDBC url with:
@@ -17,7 +35,7 @@ from pycorda import Node
 node = Node(url, username, password)
 ```
 
-If your H2 jar file is elsewhere in your filesystem, try this:
+An h2.jar file is required. If your H2 jar file is elsewhere in your filesystem, try this:
 
 ```
 from pycorda import Node
@@ -28,7 +46,8 @@ Accepted JDBC urls are in the format jdbc:h2:tcp://hostname:portnumber/path_to_d
 ## Managing H2 Jars
 
 An h2.jar file stored locally in the project folder is required. H2Tools allows you to pull
-a jar programmatically.
+a jar programmatically. You'll need to do this once, so either manually or programmatically is fine
+as long as the h2.jar file is there.
 
 ```
 import pycorda as pyc
