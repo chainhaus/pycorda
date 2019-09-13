@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.jar
 test.py
+deploy.sh
 
 # C extensions
 *.so
