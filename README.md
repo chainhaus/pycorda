@@ -35,7 +35,7 @@ from pycorda import Node
 node = Node(url, username, password)
 ```
 
-An h2.jar file is required. If your H2 jar file is elsewhere in your filesystem, try this:
+An h2.jar file is required in your projects local folder. If your H2 jar file is elsewhere in your filesystem, try this. This needs to be done only once:
 
 ```
 from pycorda import Node
