@@ -74,7 +74,7 @@ class Plotter(object):
 
 	def vault_states_ts(self):
 		df = self.node.get_vault_states()
-		plot_time_series(df['CONSUMED_TIMESTAMP'], 'Vault states consumed times')
+		plot_time_series(df['CONSUMED_TIMESTAMP'].dropna(), 'Vault states consumed times')
 
 	def node_checkpoints_ids(self):
 		df = self.node.get_node_checkpoints()

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
 	name='pycorda',
-	version='0.31',
+	version='0.35',
 	author='Jamiel Sheikh',
 	packages=['pycorda'],
 	install_requires=[
@@ -10,7 +10,9 @@ setup(
 		'pandas',
 		'matplotlib',
 		'datetime',
-		'requests'
+		'requests',
+		'pyjks'
+
 	],
 	include_package_data=True,
 )

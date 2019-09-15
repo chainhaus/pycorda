@@ -1,8 +1,11 @@
 import os
-import pandas
+import pandas as pd
 import jaydebeapi
 import sys
 import requests
+import jks
+import base64, textwrap
+import time
 from jpype import JavaException
 from xml.etree import ElementTree
 
@@ -43,7 +46,7 @@ class Node(object):
 	# If table names will change often, it may be worth to
 	# dynamically generate methods with some careful metaprogramming
 
-	def __init__(self, url, username, password, path_to_jar='./h2.jar'):
+	def __init__(self, url, username, password, path_to_jar='./h2.jar',node_root=None):
 		"""
         Parameters
         ----------
@@ -65,6 +68,23 @@ class Node(object):
 		)
 
 		self._curs = self._conn.cursor()
+		if  node_root != None:
+			self.set_node_root(node_root)
+
+	def set_node_root(self,node_root):
+		self._node_root = node_root
+		self._node_cert = node_root + '/certificates'
+		self._node_cert_jks = self._node_cert + '/nodekeystore.jks'
+
+	def display_keys_from_jks(self,password='cordacadevpass'):
+		ks = jks.KeyStore.load(self._node_cert_jks,password)
+		columns = ['ALIAS','PRIVATE_KEY']
+		keys = pd.DataFrame([],columns=columns)
+		for alias, pk in ks.private_keys.items():
+			#keys = keys.append([[alias,pk.pkey_pkcs8,'PK']])
+			df = pd.DataFrame([[alias,base64.b64encode(pk.pkey_pkcs8).decode('ascii')]],columns=columns)
+			keys = keys.append(df,ignore_index=True)
+		return keys
 
 	def _get_df(self, table_name):
 		"""Gets pandas dataframe from a table
@@ -76,7 +96,7 @@ class Node(object):
 		"""
 		self._curs.execute("SELECT * FROM " + table_name)
 		columns = [desc[0] for desc in self._curs.description] # column names
-		return pandas.DataFrame(self._curs.fetchall(), columns=columns)
+		return pd.DataFrame(self._curs.fetchall(), columns=columns)
 
 	def get_node_attachments(self):
 		return self._get_df("NODE_ATTACHMENTS")
@@ -111,7 +131,7 @@ class Node(object):
 	def get_node_message_retry(self):
 		return self._get_df("NODE_MESSAGE_RETRY")
 
-	def get_node_names_identities(self):
+	def get_node_named_identities(self):
 		return self._get_df("NODE_NAMED_IDENTITIES")
 
 	def get_node_our_key_pairs(self):
@@ -147,7 +167,119 @@ class Node(object):
 	def get_vault_transaction_notes(self):
 		return self._get_df("VAULT_TRANSACTION_NOTES")
 
+	def get_state_party(self):
+		return self._get_df("STATE_PARTY")
+
+	def _snapshot_headers(self,header):
+		return '\r\n\r\n -----------------  ' + header + ' \r\n'
+
+	def find_transactions_by_linear_id(self,linear_id):
+		linear_states = self.get_vault_linear_states()
+		return linear_states[linear_states.UUID==linear_id]
+	
+	def find_vault_states_by_transaction_id(self,tx_id):
+		vault_states = self.get_vault_states()
+		return vault_states[vault_states.TRANSACTION_ID==tx_id]
+
+	def find_vault_fungible_states_by_transaction_id(self,tx_id):
+		vault_states = self.get_vault_fungible_states()
+		return vault_states[vault_states.TRANSACTION_ID==tx_id]
+
+	def find_vault_fungible_states_by_issuer(self,issuer):
+		vault_states = self.get_vault_fungible_states()
+		return vault_states[vault_states.ISSUER_NAME==issuer]
+
+
+	def find_unconsumed_states_by_contract_state(self,contract_state_class_name):
+		unconsumed_states = self.get_vault_states()
+		return unconsumed_states[unconsumed_states.CONSUMED_TIMESTAMP.isnull()][unconsumed_states.CONTRACT_STATE_CLASS_NAME==contract_state_class_name]
+
+	def generate_snapshot(self,filename=None):
+		if filename == None:
+			filename = time.strftime("pycorda-snapshot-%Y%m%d-%H%M%S.log")
+		f = open(filename,"w+")
+
+		f.write(self._snapshot_headers('STATE_PARTY'))
+		self.get_state_party().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_ATTACHMENT'))
+		self.get_node_attachments().to_string(buf=f)
+
+		f.write(self._snapshot_headers('NODE_ATTACHMENT_CONTRACTS'))
+		self.get_node_attachments_contracts().to_string(buf=f)
+
+		f.write(self._snapshot_headers('NODE_CHECKPOINTS'))
+		self.get_node_checkpoints().to_string(buf=f)
+	
+		f.write(self._snapshot_headers('NODE_CONTRACT_UPGRADES'))
+		self.get_node_contract_upgrades().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_IDENTITIES'))		
+		self.get_node_indentities().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_INFOS'))
+		self.get_node_infos().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_INFO_HOSTS'))
+		self.get_node_info_hosts().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_INFO_PARTY_CERT'))
+		self.get_node_info_party_cert().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_LINK_NODEINFO_PARTY'))
+		self.get_node_link_nodeinfo_party().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_MESSAGE_IDS'))
+		self.get_node_message_ids().to_string(buf=f)
+		
+		#f.write(self._snapshot_headers('NODE_IDENTITIES'))
+		#self.get_node_message_retry()) - NEEDS TO BE REMOVED?
+		
+		f.write(self._snapshot_headers('NODE_NAMED_IDENTITIES'))
+		self.get_node_named_identities().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_OUR_KEY_PAIRS'))
+		self.get_node_our_key_pairs().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_PROPERTIES'))
+		self.get_node_properties().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_SCHEDULED_STATES'))
+		self.get_node_scheduled_states().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('NODE_TRANSACTIONS'))
+		self.get_node_transactions().to_string(buf=f)
+		
+		#f.write(self._snapshot_headers('NODE_IDENTITIES'))
+		#self.get_node_transaction_mappings()) - ??
+
+		f.write(self._snapshot_headers('VAULT_FUNGIBLE_STATES'))
+		self.get_vault_fungible_states().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('VAULT_FUNGIBLE_STATES_PARTS'))
+		self.get_vault_fungible_states_parts().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('VAULT_LINEAR_STATES'))
+		self.get_vault_linear_states().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('VAULT_LINEAR_STATES_PARTS'))
+		self.get_vault_linear_states_parts().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('VAULT_STATES'))
+		self.get_vault_states().to_string(buf=f)
+		
+		f.write(self._snapshot_headers('VAULT_TRANSACTION_NOTES'))
+		self.get_vault_transaction_notes().to_string(buf=f)
+		
+		
+		f.close()
+
 	def close(self):
 		"""Closes the connection to the database"""
 		self._curs.close()
 		self._conn.close()
+
+def print_pem(der_bytes, type):
+	print("-----BEGIN %s-----" % type)
+	print("\r\n".join(textwrap.wrap(base64.b64encode(der_bytes).decode('ascii'), 64)))
+	print("-----END %s-----" % type)
