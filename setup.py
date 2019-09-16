@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
 	name='pycorda',
-	version='0.35',
+	version='0.5',
 	author='Jamiel Sheikh',
 	packages=['pycorda'],
 	install_requires=[
@@ -11,7 +11,8 @@ setup(
 		'matplotlib',
 		'datetime',
 		'requests',
-		'pyjks'
+		'pyjks',
+		'chart_studio'
 
 	],
 	include_package_data=True,

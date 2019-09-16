@@ -2,6 +2,9 @@ from pycorda import Node
 from datetime import datetime
 import matplotlib
 from matplotlib import pyplot
+import pandas as pd
+import chart_studio, chart_studio.plotly as py, plotly.graph_objs as go
+from sklearn import linear_model as lm
 
 # Format for timestamp string is YYYY-MM-DD HH:MM:SS.FFF
 
@@ -64,17 +67,48 @@ class Plotter(object):
         """
 		self.node = node
 
-	def node_attachments_ts(self):
+	def publish_timeseries_fungible_qty_plotly(self, contract, user,api_key):
+		chart_studio.tools.set_credentials_file(username=user,api_key=api_key)
+		vault_states = self.node.get_vault_states()
+		vault_states = vault_states[vault_states.CONTRACT_STATE_CLASS_NAME==contract]
+		vault_fungible_states = self.node.get_vault_fungible_states()
+		df = vault_states.merge(vault_fungible_states)[['RECORDED_TIMESTAMP','QUANTITY']]
+		df['RECORDED_TIMESTAMP'] = pd.to_datetime(df['RECORDED_TIMESTAMP'])
+		series = go.Scatter(
+			x=df['RECORDED_TIMESTAMP'].tolist(),
+			y=df['QUANTITY'].tolist()
+		)
+		data = [series]
+		url = py.plot(data,filename='Coda - ' + contract)
+		print('Link to your Plotly chart is',url)
+
+	def plot_timeseries_node_attachments(self):
 		df = self.node.get_node_attachments()
 		plot_time_series(df['INSERTION_DATE'], 'Node attachments time series')
 
-	def node_message_ids_ts(self):
+	def plot_timeseries_node_message_ids(self):
 		df = self.node.get_node_message_ids()
 		plot_time_series(df['INSERTION_TIME'], 'Node message IDs time series')
 
-	def vault_states_ts(self):
+	def plot_timeseries_vault_states_consumed(self):
 		df = self.node.get_vault_states()
 		plot_time_series(df['CONSUMED_TIMESTAMP'].dropna(), 'Vault states consumed times')
+
+	def plot_timeseries_fungible_qty(self,contract):
+		vault_states = self.node.get_vault_states()
+		vault_states = vault_states[vault_states.CONTRACT_STATE_CLASS_NAME==contract]
+		vault_fungible_states = self.node.get_vault_fungible_states()
+		df = vault_states.merge(vault_fungible_states)[['RECORDED_TIMESTAMP','QUANTITY']]
+		df['RECORDED_TIMESTAMP'] = pd.to_datetime(df['RECORDED_TIMESTAMP'])
+		df.plot(kind='line',x='RECORDED_TIMESTAMP',y='QUANTITY',color='red')
+		print(df)
+
+	# def vault_states_recorded_ts(self):
+	# 	df = self.node.get_vault_states()[]
+	# 	pyplot.plot()
+	# def vault_states_recorded_ts(self):
+	# 	df = self.node.get_vault_states()
+	# 	plot_time_series(df['RECORDED_TIMESTAMP'].dropna(), 'Vault states recorded times')		
 
 	def node_checkpoints_ids(self):
 		df = self.node.get_node_checkpoints()

@@ -46,7 +46,7 @@ class Node(object):
 	# If table names will change often, it may be worth to
 	# dynamically generate methods with some careful metaprogramming
 
-	def __init__(self, url, username, password, path_to_jar='./h2.jar',node_root=None):
+	def __init__(self, url, username, password, path_to_jar='./h2.jar',node_root=None,web_server_url=None,name=''):
 		"""
         Parameters
         ----------
@@ -60,6 +60,7 @@ class Node(object):
         	path to h2 jar file
         """
 
+		self.set_name(name)
 		self._conn = jaydebeapi.connect(
 			"org.h2.Driver",
 			url,
@@ -70,6 +71,21 @@ class Node(object):
 		self._curs = self._conn.cursor()
 		if  node_root != None:
 			self.set_node_root(node_root)
+		if web_server_url != None:
+			self.set_web_server_url(web_server_url)
+	
+	def set_name(self,name):
+		self._name = name
+	def send_api_request_get(self,api_url):
+		if self._web_server_url != None:
+			request_url = self._web_server_url + api_url
+			resp = requests.get(request_url)
+			return resp.text
+		else:
+			return "No web_server set i.e. http://localhost:10007. Call set_web_server_url()"
+	
+	def set_web_server_url(self,web_server_url):
+		self._web_server_url = web_server_url
 
 	def set_node_root(self,node_root):
 		self._node_root = node_root
@@ -194,9 +210,14 @@ class Node(object):
 		unconsumed_states = self.get_vault_states()
 		return unconsumed_states[unconsumed_states.CONSUMED_TIMESTAMP.isnull()][unconsumed_states.CONTRACT_STATE_CLASS_NAME==contract_state_class_name]
 
+	def find_linear_id_by_transaction_id(self,tx_id):
+		linear_states = self.get_vault_linear_states()
+		linear = linear_states[linear_states.TRANSACTION_ID==tx_id]
+		return linear.iloc[0]['LINEAR_ID']
+
 	def generate_snapshot(self,filename=None):
 		if filename == None:
-			filename = time.strftime("pycorda-snapshot-%Y%m%d-%H%M%S.log")
+			filename = time.strftime(self._name+'-pycorda-snapshot-%Y%m%d-%H%M%S.log')
 		f = open(filename,"w+")
 
 		f.write(self._snapshot_headers('STATE_PARTY'))
