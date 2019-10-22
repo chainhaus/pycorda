@@ -95,6 +95,13 @@ class Plotter(object):
 		plot_time_series(df['CONSUMED_TIMESTAMP'].dropna(), 'Vault states consumed times')
 
 	def plot_timeseries_fungible_qty(self,contract):
+
+		'''
+		SELECT RECORDED_TIMESTAMP,QUANTITY FROM VAULT_STATES, VAULT_FUNGIBLE_STATES
+		WHERE VAULT_STATES.TRANSACTION_ID = VAULT_FUNGIBLE_STATES.TRANSACTION_ID
+		AND VAULT_STATES.CONTRACT_STATE_CLASS_NAME = 'net.corda.finance.contracts.asset.Cash$State'
+
+		'''
 		vault_states = self.node.get_vault_states()
 		vault_states = vault_states[vault_states.CONTRACT_STATE_CLASS_NAME==contract]
 		vault_fungible_states = self.node.get_vault_fungible_states()
