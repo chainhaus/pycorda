@@ -64,6 +64,10 @@ h2.download_h2jar() # downloads latest h2 jar and stores in local folder as h2.j
 1. Currently supports 64-bit versions of Python 3 and JVMs only
 2. Drop an H2 jar into your project file naming it h2.jar
 
+## Windows
+
+You will need to install the Microsoft C++ build tools downloaded from https://visualstudio.microsoft.com/visual-cpp-build-tools/.
+
 ## Ubuntu
 
 Note that for Ubuntu, you may need to install wheel with
