@@ -12,8 +12,8 @@ setup(
 		'datetime',
 		'requests',
 		'pyjks',
-		'chart_studio'
-
+		'chart_studio',
+		'scikit-learn'
 	],
 	include_package_data=True,
 )
