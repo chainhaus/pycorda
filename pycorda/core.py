@@ -6,7 +6,7 @@ import requests
 import jks
 import base64, textwrap
 import time
-from jpype import JavaException
+from jpype import JException
 from xml.etree import ElementTree
 
 class H2Tools(object):
