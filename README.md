@@ -61,3 +61,5 @@ h2.download_h2jar() # downloads latest h2 jar and stores in local folder as h2.j
 
 1. Currently supports 64-bit versions of Python 3 and JVMs only
 2. Drop an H2 jar into your project file naming it h2.jar
+3. If on Windows, install Visual Studio tools
+4. Install sklearn (pip install sklearn)
