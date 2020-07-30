@@ -27,6 +27,8 @@ To get started using the PyCorda library, install it with
 pip install pycorda
 ```
 
+Note that you may need to install other required software, depending on your platform. See the platform specific instructions.
+
 If there is a H2 server running with tcp connections allowed,
 then you can connect to a database located at the JDBC url with:
 
@@ -61,3 +63,19 @@ h2.download_h2jar() # downloads latest h2 jar and stores in local folder as h2.j
 
 1. Currently supports 64-bit versions of Python 3 and JVMs only
 2. Drop an H2 jar into your project file naming it h2.jar
+
+## Ubuntu
+
+Note that for Ubuntu, you may need to install wheel with
+
+```
+pip install wheel
+python setup.py bdist_wheel
+```
+
+Also ensure you have gcc installed:
+
+```
+sudo apt-get update
+sudo apt-get install gcc
+```
