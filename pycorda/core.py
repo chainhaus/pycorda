@@ -8,6 +8,7 @@ import base64, textwrap
 import time
 from jpype import JException
 from xml.etree import ElementTree
+from jolokia import JolokiaClient
 
 class H2Tools(object):
 	def get_latest_version(self):
@@ -73,13 +74,23 @@ class Node(object):
 			self.set_node_root(node_root)
 		if web_server_url != None:
 			self.set_web_server_url(web_server_url)
+
+		self.rpc_server_nid = 'org.apache.activemq.artemis:broker="RPC",component=addresses,address="rpc.server",subcomponent=queues,routing-type="multicast",queue="rpc.server"'
 	
 	def set_name(self,name):
 		self._name = name
-	def send_api_request_get(self,api_url):
+	def send_api_get_request(self, api_path):
 		if self._web_server_url != None:
-			request_url = self._web_server_url + api_url
+			request_url = self._web_server_url + api_path
 			resp = requests.get(request_url)
+			return resp.text
+		else:
+			return "No web_server set i.e. http://localhost:10007. Call set_web_server_url()"
+
+	def send_api_post_request(self, api_path, data):
+		if self._web_server_url != None:
+			request_url = self._web_server_url + api_path
+			resp = requests.post(request_url, json=data)
 			return resp.text
 		else:
 			return "No web_server set i.e. http://localhost:10007. Call set_web_server_url()"
@@ -214,6 +225,68 @@ class Node(object):
 		linear_states = self.get_vault_linear_states()
 		linear = linear_states[linear_states.TRANSACTION_ID==tx_id]
 		return linear.iloc[0]['LINEAR_ID']
+
+	def jolokia_read(self, nid):
+		payload = {'url': self._node_root + "jolokia/", 'nid': nid}
+		return self.send_api_post_request("jolokia/read", payload)
+
+	def jolokia_execute(self, nid, operation):
+		payload = {'url': self._node_root + "jolokia/", 'nid': nid, 'operation': operation}
+		return self.send_api_post_request("jolokia/execute", payload)
+
+	def memory(self):
+		return self.jolokia_read("java.lang:type=Memory")
+
+	def operating_system(self):
+		return self.jolokia_read("java.lang:type=OperatingSystem")
+
+	def runtime(self):
+		return self.jolokia_read("java.lang:type=Runtime")
+
+	def mbean_servers_info(self):
+		return self.jolokia_execute("jolokia:type=ServerHandler", "mBeanServersInfo()")
+
+	def attachments(self):
+		return self.jolokia_read("net.corda:name=Attachments")
+
+	def flows_started(self):
+		return self.jolokia_read("net.corda:type=Flows,name=Started")
+
+	def flows_in_flight(self):
+		return self.jolokia_read("net.corda:type=Flows,name=InFlight")
+
+	def flows_finished(slef):
+		return self.jolokia_read("net.corda:type=Flows,name=Finished")
+
+	def flows_checkpointing_rate(self):
+		return self.jolokia_read("net.corda:type=Flows,name=Checkpointing Rate")
+
+	def flows_checkpoint_volume_bytes_per_second_hist(self):
+		return self.jolokia_read("net.corda:type=Flows,name=CheckpointVolumeBytesPerSecondHist")
+
+	def flows_checkpoint_volume_bytes_per_second_current(self):
+		return self.jolokia_read("net.corda:type=Flows,name=CheckpointVolumeBytesPerSecondCurrent")
+
+	def hikari_pool_usage(self):
+		return self.jolokia_read("net.corda:type=HikariPool-1,name=pool.Usage")
+
+	def rpc_server(slef):
+		return self.jolokia_read(self.rpc_server_nid)
+
+	def rpc_server_browse(self):
+		return self.jolokia_execute(self.rpc_server_nid, "browse()")
+
+	def rpc_server_pause(self):
+		return self.jolokia_execute(self.rpc_server_nid, "pause()")
+
+	def rpc_server_resume(self):
+		return self.jolokia_execute(self.rpc_server_nid, "resume()")
+
+	def rpc_server_count_messages(self):
+		return self.jolokia_execute(self.rpc_server_nid, "countMessages()")
+
+	def log4j2(self):
+		return self.jolokia_read("org.apache.logging.log4j2:type=*")
 
 	def generate_snapshot(self,filename=None):
 		if filename == None:
