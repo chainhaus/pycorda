@@ -91,7 +91,7 @@ class Node(object):
 		if self._web_server_url != None:
 			request_url = self._web_server_url + api_path
 			resp = requests.post(request_url, json=data)
-			return resp.text
+			return resp.json()
 		else:
 			return "No web_server set i.e. http://localhost:10007. Call set_web_server_url()"
 	
