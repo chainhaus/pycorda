@@ -13,7 +13,8 @@ setup(
 		'requests',
 		'pyjks',
 		'chart_studio',
-		'scikit-learn'
+		'scikit-learn',
+		'jolokia'
 	],
 	include_package_data=True,
 )
