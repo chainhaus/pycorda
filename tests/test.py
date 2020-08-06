@@ -4,21 +4,23 @@ import sys
 import os.path
 import json
 
+def tests_dir():
+	return os.path.dirname(sys.argv[1])
+
+def get_config():
+	config_path = os.path.join(tests_dir(), 'config.json')
+	
+	with open(config_path) as config_file:
+		return json.load(config_file)
+
 class TestQueries(unittest.TestCase):
 	@classmethod
-	def load_config(cls):
-		tests_dir = os.path.dirname(sys.argv[1])
-		config_path = os.path.join(tests_dir, 'config.json')
-		default_driver_path = os.path.join(tests_dir, 'h2-1.4.200.jar')
-		with open(config_path) as config_file:
-			config = json.load(config_file)
-		cls.db_url = config['db_url']
-		cls.client_driver_path = config.get('client_driver_path', default_driver_path)
-
-	@classmethod
 	def setUpClass(cls):
-		cls.load_config()
-		cls.node = pycorda.Node(cls.db_url, "sa", "", cls.client_driver_path)	
+		config = get_config()
+		db_url = config['db_url']
+		default_driver_path = os.path.join(tests_dir(), 'h2-1.4.200.jar')
+		client_driver_path = config.get('client_driver_path', default_driver_path)
+		cls.node = pycorda.Node(db_url, "sa", "", client_driver_path)	
 
 	def test_single_table_query(self):
 		df = self.node.get_node_attachments()
