@@ -13,14 +13,17 @@ def get_config():
 	with open(config_path) as config_file:
 		return json.load(config_file)
 
+def new_node(config):
+	db_url = config['db_url']
+	default_driver_path = os.path.join(tests_dir(), 'h2-1.4.200.jar')
+	client_driver_path = config.get('client_driver_path', default_driver_path)
+	return pycorda.Node(db_url, "sa", "", client_driver_path)
+
 class TestQueries(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		config = get_config()
-		db_url = config['db_url']
-		default_driver_path = os.path.join(tests_dir(), 'h2-1.4.200.jar')
-		client_driver_path = config.get('client_driver_path', default_driver_path)
-		cls.node = pycorda.Node(db_url, "sa", "", client_driver_path)	
+		cls.node = new_node(config)	
 
 	def test_single_table_query(self):
 		df = self.node.get_node_attachments()
@@ -32,3 +35,19 @@ class TestQueries(unittest.TestCase):
 		no_row = self.node.find_vault_states_by_transaction_id('2')
 		self.assertEqual(single_row.iloc[0]['TRANSACTION_ID'], '1')
 		self.assertTrue(no_row.empty)
+
+class TestJolokia(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		config = get_config()
+		cls.node = new_node(config)
+		cls.node.set_node_root(config['jolokia_agent_url'])
+		cls.node.set_web_server_url(config['proxy_url'])
+
+	def test_single_read(self):
+		data = self.node.memory()
+		self.assertEqual(data['value']['ObjectName']['objectName'], 'java.lang:type=Memory')
+
+	def test_single_execute(self):
+		data = self.node.rpc_server_browse()
+		self.assertEqual(data['status'], 200)
