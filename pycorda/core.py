@@ -6,6 +6,8 @@ import requests
 import jks
 import base64, textwrap
 import time
+import warnings
+import json
 from jpype import JException
 from xml.etree import ElementTree
 from jolokia import JolokiaClient
@@ -47,6 +49,8 @@ class Node(object):
 	# If table names will change often, it may be worth to
 	# dynamically generate methods with some careful metaprogramming
 
+	path_to_jar = None
+
 	def __init__(self, url, username, password, path_to_jar='./h2.jar',node_root=None,web_server_url=None,name=''):
 		"""
         Parameters
@@ -61,13 +65,26 @@ class Node(object):
         	path to h2 jar file
         """
 
+		if self.path_to_jar:
+			warnings.warn("Node constructor has already been called, causing the JVM to start.")
+			warnings.warn("The JVM cannot be restarted, so the original path to jar " + self.path_to_jar + " will be used.")
+		else:
+			self.path_to_jar = path_to_jar
+
+
 		self.set_name(name)
-		self._conn = jaydebeapi.connect(
-			"org.h2.Driver",
-			url,
-			[username, password],
-			path_to_jar,
-		)
+
+		try:
+			self._conn = jaydebeapi.connect(
+				"org.h2.Driver",
+				url,
+				[username, password],
+				self.path_to_jar,
+			)
+		except TypeError as e:
+			raise OSError('path to jar is invalid')
+		except JException as e:
+			raise OSError('cannot connect to ' + url)
 
 		self._curs = self._conn.cursor()
 		if  node_root != None:
@@ -90,8 +107,13 @@ class Node(object):
 	def send_api_post_request(self, api_path, data):
 		if self._web_server_url != None:
 			request_url = self._web_server_url + api_path
-			resp = requests.post(request_url, json=data)
-			return resp.json()
+			try:
+				resp = requests.post(request_url, json=data, timeout=3)
+				return resp.json()
+			except requests.exceptions.ConnectionError as e:
+				raise OSError('cannot connect to ' + request_url)
+			except json.decoder.JSONDecodeError as e:
+				raise OSError('request fails with response status ' + str(resp.status_code))
 		else:
 			return "No web_server set i.e. http://localhost:10007. Call set_web_server_url()"
 	
