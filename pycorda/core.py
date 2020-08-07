@@ -15,12 +15,12 @@ from jolokia import JolokiaClient
 class H2Tools(object):
 	def get_latest_version(self):
 		"""Returns the latest version string for the h2 database"""
-		r = requests.get('http://central.maven.org/maven2/com/h2database/h2/maven-metadata.xml')
+		r = requests.get('http://h2database.com/m2-repo/com/h2database/h2/maven-metadata.xml')
 		tree = ElementTree.fromstring(r.content)
-		return tree.find('versioning').find('latest').text
+		return tree.find('versioning').find('release').text
 
 	def get_h2jar_url(self,version):
-		url = "http://central.maven.org/maven2/com/h2database/h2/"
+		url = "https://mvnrepository.com/artifact/com.h2database/h2/"
 		url += version + "/h2-" + version + ".jar"
 		return url
 
