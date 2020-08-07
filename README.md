@@ -59,6 +59,16 @@ print(ver)
 h2.download_h2jar() # downloads latest h2 jar and stores in local folder as h2.jar
 ```
 
+## Testing
+
+To run the tests, ensure the testing environment is properly configured and place the correct urls at tests/config.json.
+You can then execute the following commands from the project directory:
+
+```
+python -m unittest tests.test
+python -m unittest tests.test_invalid_driver
+```
+
 ## Requirements
 
 1. Currently supports 64-bit versions of Python 3 and JVMs only
