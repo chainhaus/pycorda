@@ -1,10 +1,14 @@
 # PyCorda
+PyCorda is a framework for accessing data on the Corda DLT using Python. It includes the ability to quickly generate charts and graphs and will soon have machine learning capabilities. PyCorda is covered in-depth in the book **[Mastering Corda](https://www.amazon.com/Mastering-Corda-Building-Distributed-Applications/dp/149204718X/)**. The official website for PyCorda is **[PyCorda.com](http://PyCorda.com)**.
+
+## Getting Involved
+If you would like to be involved in PyCorda shoot an email to hello@chainhaus.com
+
+
+# Using PyCorda
 
 Access node and vault data for analytics using pandas DataFrames. Currently only works with H2 database. 
 We'll be adding other DBs shortly and possibly support for queryable states.
-
-## PyCorda.com
-Access docs on PyCorda.com (coming soon)
 
 ## Example
 
